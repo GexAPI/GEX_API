@@ -1,25 +1,4 @@
---[[
-Welcome to GEX API! This is a closed source API which has a large variety of features.
-
-To use these features, you paste in the loadstring, and call one of these with this prefix; API:insertcommand()
-
-Current list of features:
-
-API:GetGun(GunName)
-API:AllGuns()
-API:Speed(speed)
-API:JumpPower(power)
-API:Gravity(gravity)
-API:Time()
-API:SaveGame()
-API:Bypasser()
-API:Teleport(PlrName)
-API:bring(playerInstance,Cframe)
-]]
-
 local API = {}
-
-API.Toggleables = {}
 
 local PremiumActivated = false
 
