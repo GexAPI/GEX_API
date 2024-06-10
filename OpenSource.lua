@@ -20,7 +20,7 @@ API:bring(playerInstance,Cframe)
 
 local API = {}
 
-local CurrentVersion = "0.0.2"
+local CurrentVersion = "0.0.3"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if not CurrentVersion == Old_Version then
@@ -89,6 +89,27 @@ function API:ConvertPosition(Position)
 	else
 		return Position
 	end
+end
+
+function API:CreateBulletTable(Amount, Hit, IsTrue)
+	local Args = {}
+	for i = 1, tonumber(Amount) do
+		if IsTrue then
+			Args[#Args + 1] = {
+				["RayObject"] = Ray.new(Vector3.new(990.272583, 101.489975, 2362.74878), Vector3.new(-799.978333, 0.23157759, -5.88794518)),
+				["Distance"] = 198.9905242919922,
+				["Cframe"] = CFrame.new(894.362549, 101.288307, 2362.53491, -0.0123058055, 0.00259522465, -0.999920964, 3.63797837e-12, 0.999996722, 0.00259542116, 0.999924302, 3.19387436e-05, -0.0123057645),
+			}
+		else
+			Args[#Args + 1] = {
+				["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+				["Distance"] = 0,
+				["Cframe"] = CFrame.new(),
+				["Hit"] = Hit,
+			}
+		end
+	end
+	return Args
 end
 
 function API:MoveTo(Cframe)
@@ -314,6 +335,76 @@ function API:MakeAllCrim()
     end
 end
 
---API:bring(game.Players.DrDoomsDemise, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame)
+function API:ChangeTeam(TeamPath,NoForce,Pos)
+	pcall(function()
+		repeat task.wait() until game:GetService("Players").LocalPlayer.Character
+		game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart")
 
-API:MakeAllCrim()
+		API:WaitForRespawn(Pos or API:GetPosition(),NoForce)
+	end)
+	if TeamPath == game.Teams.Criminals then
+		task.spawn(function()
+			workspace.Remote.TeamEvent:FireServer("Bright orange")
+		end)
+		repeat API:swait() until Player.Team == game.Teams.Inmates and Player.Character:FindFirstChild("HumanoidRootPart")
+		repeat
+			API:swait()
+			if firetouchinterest then
+				firetouchinterest(plr.Character:FindFirstChildOfClass("Part"), game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1], 0)
+				firetouchinterest(plr.Character:FindFirstChildOfClass("Part"), game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1], 1)
+			end
+			game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1].Transparency = 1
+			game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1].CanCollide = false
+			game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1].CFrame = API:GetPosition()
+		until plr.Team == game:GetService("Teams").Criminals
+		game:GetService("Workspace")["Criminals Spawn"]:GetChildren()[1].CFrame = CFrame.new(0, 3125, 0)
+	else
+		if TeamPath == game.Teams.Neutral then
+			workspace['Remote']['TeamEvent']:FireServer("Bright orange")
+		else
+			if not TeamPath or not TeamPath.TeamColor then
+				workspace['Remote']['TeamEvent']:FireServer("Bright orange")
+			else
+				workspace['Remote']['TeamEvent']:FireServer(TeamPath.TeamColor.Name)
+			end
+		end
+	end
+end
+
+function API:KillPlayer(Target,Failed,DoChange)
+	local Bullets = API:CreateBulletTable(20,(Target.Character:FindFirstChild("Head") or Target.Character:FindFirstChildOfClass("Part")))
+	if not Target or not Target.Character or not Target.Character:FindFirstChildOfClass("Humanoid") or Target.Character:FindFirstChildOfClass("Humanoid").Health <1 then
+		return
+	end
+	repeat API:swait() until not Target.Character:FindFirstChildOfClass("ForceField")
+	local CurrentTeam = nil
+	if Target.Team == Player.Team then
+		if Target.Team~= game.Teams.Criminals then
+			CurrentTeam = Player.Team
+			API:ChangeTeam(game.Teams.Criminals,true)
+		elseif Target.Team == game.Teams.Criminals then
+			CurrentTeam = Player.Team
+			API:ChangeTeam(game.Teams.Inmates,true)
+		end
+	end
+
+	local Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870")
+	API:GetGun("Remington 870")
+	repeat API:swait()Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870") until Gun
+	task.spawn(function()
+		game:GetService("ReplicatedStorage").ShootEvent:FireServer(Bullets, Gun)
+		game:GetService("ReplicatedStorage").ReloadEvent:FireServer(Gun)
+	end)
+	coroutine.wrap(function()
+		wait(.7)
+		pcall(function()
+			if Target.Character:FindFirstChildOfClass("Humanoid").Health >1 and not Failed then
+				API:KillPlayer(Target,true)
+			end
+		end)
+	end)()
+	if CurrentTeam and not Player.Team == CurrentTeam and not DoChange then
+		wait(.3)
+		API:ChangeTeam(CurrentTeam,true)
+	end
+end
