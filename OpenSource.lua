@@ -1,6 +1,6 @@
 
 --[[
-Welcome to GEX API! This is an open sourced API which has a large variety of features.
+Welcome to GEX API! This is a closed source API which has a large variety of features.
 
 To use these features, you paste in the loadstring, and call one of these with this prefix; API:insertcommand()
 
@@ -20,7 +20,7 @@ API:bring(playerInstance,Cframe)
 
 local API = {}
 
-local CurrentVersion = "0.0.1"
+local CurrentVersion = "0.0.2"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if not CurrentVersion == Old_Version then
@@ -40,6 +40,31 @@ function Clipboard(value)
         print("Works")
 	else
         print("Incompatible")
+	end
+end
+
+function API:UnSit()
+	game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Sit = false
+end
+
+function API:ConvertPosition(Position)
+	if typeof(Position):lower() == "position" then
+		return CFrame.new(Position)
+	else
+		return Position
+	end
+end
+
+function API:MoveTo(Cframe)
+	Cframe = API:ConvertPosition(Cframe)
+	local Amount = 5
+	if Player.PlayerGui['Home']['hud']['Topbar']['titleBar'].Title.Text:lower() == "lights out" or Player.PlayerGui.Home.hud.Topbar.titleBar.Title.Text:lower() == "lightsout" then
+		Amount = 11
+	end
+	for i = 1, Amount do
+		API:UnSit()
+		Player.Character:WaitForChild("HumanoidRootPart").CFrame = Cframe
+		API:swait()
 	end
 end
 
@@ -252,3 +277,7 @@ function API:MakeAllCrim()
         end
     end
 end
+
+--API:bring(game.Players.DrDoomsDemise, game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame)
+
+API:MakeAllCrim()
