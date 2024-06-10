@@ -1,4 +1,3 @@
-
 --[[
 Welcome to GEX API! This is a closed source API which has a large variety of features.
 
@@ -20,7 +19,7 @@ API:bring(playerInstance,Cframe)
 
 local API = {}
 
-local CurrentVersion = "0.0.3"
+local CurrentVersion = "0.0.4"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if not CurrentVersion == Old_Version then
@@ -407,4 +406,48 @@ function API:KillPlayer(Target,Failed,DoChange)
 		wait(.3)
 		API:ChangeTeam(CurrentTeam,true)
 	end
+end
+
+function API:KillAll()
+    for i,v in pairs(game.Players:GetPlayers()) do
+        API:KillPlayer(v)
+    end
+end
+
+function API:CrashServer()
+    local Gun = "Remington 870"
+
+    local Player = game.Players.LocalPlayer.Name
+
+    API:GetGun(Gun)
+
+    for i,v in pairs(game.Players[Player].Backpack:GetChildren()) do
+        if v.name == (Gun) then
+            v.Parent = game.Players.LocalPlayer.Character
+        end
+    end
+
+    Gun = game.Players[Player].Character[Gun]
+
+    game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+
+    function FireGun(target)
+        coroutine.resume(coroutine.create(function()
+        local bulletTable = {}
+        table.insert(bulletTable, {
+        Hit = target,
+        Distance = 100,
+        Cframe = CFrame.new(0,1,1),
+        RayObject = Ray.new(Vector3.new(0.1,0.2), Vector3.new(0.3,0.4))
+        })
+        game.ReplicatedStorage.ShootEvent:FireServer(bulletTable, Gun)
+        wait()
+        end))
+    end
+
+    while game:GetService("RunService").Stepped:wait() do
+	for count = 0, 10, 10 do
+	    FireGun()
+	end
+    end
 end
