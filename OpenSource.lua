@@ -15,6 +15,12 @@ API:SaveGame()
 API:Bypasser()
 API:Teleport(PlrName)
 API:bring(playerInstance,Cframe)
+API:MakeAllCrim()
+API:ChangeTeam(Team)
+API:KillPlayer(Target)
+API:KillAll() [buggy]
+API:MoveTo(cframe)
+API:CrashServer()
 ]]
 
 local API = {}
