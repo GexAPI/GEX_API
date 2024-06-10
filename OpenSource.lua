@@ -25,14 +25,14 @@ API:CrashServer()
 
 local API = {}
 
-local CurrentVersion = "0.0.4"
+local CurrentVersion = "0.0.5"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if not CurrentVersion == Old_Version then
     print("API is outdated! Please get latest version.")
 end
 
-local PremiumActivated = false
+local PremiumActivated = true
 
 local plr = game.Players.LocalPlayer
 local Player = game.Players.LocalPlayer
@@ -414,12 +414,6 @@ function API:KillPlayer(Target,Failed,DoChange)
 	end
 end
 
-function API:KillAll()
-    for i,v in pairs(game.Players:GetPlayers()) do
-        API:KillPlayer(v)
-    end
-end
-
 function API:CrashServer()
     local Gun = "Remington 870"
 
@@ -456,4 +450,108 @@ function API:CrashServer()
 	    FireGun()
 	end
     end
+end
+
+function API:killall(TeamToKill)
+	if not TeamToKill then
+		local LastTeam = Player.Team
+		local BulletTable = {}
+		if Player.Team ~= game.Teams.Criminals then
+			API:ChangeTeam(game.Teams.Criminals,true)
+		end
+		API:GetGun("Remington 870")
+		local Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870")
+		repeat API:swait() Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870") until Gun
+
+		for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+			if v and v~=Player  and v.Team == game.Teams.Inmates or v.Team == game.Teams.Guards and not table.find(API.Whitelisted,v)  then
+				for i =1,15 do
+					BulletTable[#BulletTable + 1] = {
+						["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+						["Hit"] = v.Character:FindFirstChild("Head") or v.Character:FindFirstChildOfClass("Part"),
+					}
+				end
+			end
+		end
+		task.spawn(function()
+			game:GetService("ReplicatedStorage").ShootEvent:FireServer(BulletTable, Gun)
+		end)
+		API:ChangeTeam(game.Teams.Inmates,true)
+		API:GetGun("Remington 870")
+		repeat API:swait() Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870") until Gun
+		local Gun = Player.Backpack:FindFirstChild("Remington 870") or Player.Character:FindFirstChild("Remington 870")
+		for i,v in pairs(game.Teams.Criminals:GetPlayers()) do
+			if v and v~=Player and not table.find(API.Whitelisted,v) then
+				for i =1,15 do
+					BulletTable[#BulletTable + 1] = {
+						["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+						["Hit"] = v.Character:FindFirstChild("Head") or v.Character:FindFirstChildOfClass("Part"),
+					}
+				end
+			end
+		end
+		task.spawn(function()
+			game:GetService("ReplicatedStorage").ShootEvent:FireServer(BulletTable, Gun)
+		end)
+		if LastTeam ~= game.Teams.Inmates then
+			API:ChangeTeam(LastTeam,true)
+		end
+	elseif TeamToKill then
+		if TeamToKill == game.Teams.Inmates or TeamToKill == game.Teams.Guards  then
+			if Player.Team ~= game.Teams.Criminals then
+				API:ChangeTeam(game.Teams.Criminals)
+			end
+		elseif TeamToKill == game.Teams.Criminals then
+			if Player.Team ~= game.Teams.Inmates then
+				API:ChangeTeam(game.Teams.Inmates)
+			end
+		end
+		local BulletTable = {}
+		for i,v in pairs(TeamToKill:GetPlayers()) do
+			if v and v~=Player and  not table.find(API.Whitelisted,v) then
+				for i =1,15 do
+					BulletTable[#BulletTable + 1] = {
+						["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+						["Hit"] = v.Character:FindFirstChild("Head") or v.Character:FindFirstChildOfClass("Part"),
+					}
+				end
+			end
+		end
+		wait(.4)
+		API:GetGun("M9")
+		local Gun = Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9")
+		repeat task.wait() Gun = Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9") until Gun
+
+		task.spawn(function()
+			game:GetService("ReplicatedStorage").ShootEvent:FireServer(BulletTable, Gun)
+		end)
+	end
+end
+
+function API:lag()
+	API:Notif("Lagging the server...")
+	local Bullets = API:CreateBulletTable(10, nil, true)
+	if API:GuardsFull() then
+		API:GetGun("M9")
+	else
+		API:ChangeTeam(game.Teams.Guards)
+	end
+	repeat
+		task.wait()
+	until Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9") 
+	game:GetService("ReplicatedStorage").ReloadEvent:FireServer(Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9"))
+	for i = 1,40 do
+		local Gun = Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9") 
+		if not Gun or not API:GetHumanoid() or API:GetHumanoid() and API:GetHumanoid().Health < 1  then
+			task.wait(4)--//Ping cool down
+			API:lag()
+			break
+		end
+		coroutine.wrap(function()
+			game:GetService("ReplicatedStorage").ShootEvent:FireServer({}, Gun)
+		end)()
+		coroutine.wrap(function()
+			game:GetService("ReplicatedStorage").ReloadEvent:FireServer(Gun)
+		end)()
+	end
 end
