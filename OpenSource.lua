@@ -25,6 +25,12 @@ API:CrashServer()
 
 local API = {}
 
+local Whitelist = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua")))
+
+if not Whitelist[game.Players.LocalPlayer.Name] then
+	game.Players.LocalPlayer:Kick("You are not whitelisted.")
+end
+
 local CurrentVersion = "0.0.5"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
@@ -38,14 +44,16 @@ local plr = game.Players.LocalPlayer
 local Player = game.Players.LocalPlayer
 
 function Clipboard(value)
-    print("going through")
     local clipBoard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
 	if clipBoard then
 		clipBoard(value)
-        print("Works")
 	else
-        print("Incompatible")
+
 	end
+end
+
+function API:GetHumanoid()
+	return plr.Character:FindFirstChildOfClass("Humanoid")
 end
 
 function API:Notif(Text,Dur)
