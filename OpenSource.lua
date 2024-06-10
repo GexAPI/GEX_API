@@ -1,9 +1,48 @@
+
+--[[
+Welcome to GEX API! This is an open sourced API which has a large variety of features.
+
+To use these features, you paste in the loadstring, and call one of these with this prefix; API:insertcommand()
+
+Current list of features:
+
+API:GetGun(GunName)
+API:AllGuns()
+API:Speed(speed)
+API:JumpPower(power)
+API:Gravity(gravity)
+API:Time()
+API:SaveGame()
+API:Bypasser()
+API:Teleport(PlrName)
+API:bring(playerInstance,Cframe)
+]]
+
 local API = {}
+
+local CurrentVersion = "0.0.1"
+local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
+
+if not CurrentVersion == Old_Version then
+    print("API is outdated! Please get latest version.")
+end
 
 local PremiumActivated = false
 
 local plr = game.Players.LocalPlayer
 local Player = game.Players.LocalPlayer
+
+function Clipboard(value)
+    print("going through")
+    local clipBoard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+	if clipBoard then
+		clipBoard(value)
+        print("Works")
+	else
+        print("Incompatible")
+	end
+end
+
 function API:swait()
 	game:GetService("RunService").Stepped:Wait()
 end
@@ -37,16 +76,20 @@ end
 
 function API:AllGuns()
     local plr = game.Players.LocalPlayer 
-local saved = game:GetService("Players").LocalPlayer.Character:GetPrimaryPartCFrame()
-if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(plr.UserId, 96651) then
-API:GetGun("M4A1", true)
-end
-API:GetGun("AK-47", true)
-task.spawn(function()
-API:GetGun("Remington 870", true)
-end)
-API:GetGun("M9", true)
-game:GetService("Players").LocalPlayer.Character:SetPrimaryPartCFrame(saved)
+    local saved = game:GetService("Players").LocalPlayer.Character:GetPrimaryPartCFrame()
+    if game:GetService("MarketplaceService"):UserOwnsGamePassAsync(plr.UserId, 96651) then
+        API:GetGun("M4A1", true)
+    end
+
+    API:GetGun("AK-47", true)
+
+    task.spawn(function()
+        API:GetGun("Remington 870", true)
+    end)
+
+    API:GetGun("M9", true)
+
+    game:GetService("Players").LocalPlayer.Character:SetPrimaryPartCFrame(saved)
 end
 
 function API:Gravity(value)
