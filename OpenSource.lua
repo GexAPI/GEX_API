@@ -25,7 +25,7 @@ API:CrashServer()
 
 local API = {}
 
-local Whitelist = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua")))
+local Whitelist = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Whitelist.lua")))
 
 if not Whitelist[game.Players.LocalPlayer.Name] then
 	game.Players.LocalPlayer:Kick("You are not whitelisted.")
