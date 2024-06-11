@@ -24,6 +24,8 @@ API:CrashServer()
 ]]
 
 local API = {}
+local Temp = {}
+local Reload_Guns = {}
 
 local Whitelist = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Whitelist.lua")))
 
@@ -31,7 +33,7 @@ if not Whitelist[game.Players.LocalPlayer.Name] then
 	game.Players.LocalPlayer:Kick("You are not whitelisted.")
 end
 
-local CurrentVersion = "0.0.5"
+local CurrentVersion = "0.0.6"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if not CurrentVersion == Old_Version then
@@ -42,6 +44,53 @@ local PremiumActivated = true
 
 local plr = game.Players.LocalPlayer
 local Player = game.Players.LocalPlayer
+
+API.Whitelisted = {game.Players.LocalPlayer}
+local Unloaded = false
+
+local States = {}
+
+States.loopkillinmates = false
+States.loopkillcriminals = false
+States.DraggableGuis = false
+States.spawnguns = false
+States.loopkillguards = false
+States.Antishield = false
+States.DoorsDestroy = false
+States.antipunch = false
+States.AutoRespawn = false
+States.AutoItems = false
+States.ClickKill = false
+States.ClickArrest = false
+States.AntiTase = false
+States.AntiArrest = false
+States.OnePunch = false
+States.killaura = false
+States.anticrash = false
+States.AntiTouch = false
+States.ShootBack = false
+States.AntiFling = false
+States.AutoInfAmmo = false
+States.joinlogs = false
+States.noclip = false
+States.Godmode = false
+States.loopopendoors = false
+States.SilentAim = false
+States.ArrestAura = false
+States.OneShot = false
+States.ff = false
+States.esp = false
+States.earrape = false
+--
+Temp.IsBringing = false
+Temp.Loopkilling = {}
+Temp.ArrestOldP = false
+Temp.KillAuras = {}
+Temp.Admins = {}
+Temp.LoopmKilling = {}
+Temp.Viruses = {}
+Temp.SavedAdmins = {}
+Running = false
 
 function Clipboard(value)
     local clipBoard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
@@ -54,6 +103,26 @@ end
 
 function API:GetHumanoid()
 	return plr.Character:FindFirstChildOfClass("Humanoid")
+end
+
+function API:Tween(Obj, Prop, New, Time)
+	if not Time then
+		Time = .5
+	end
+	local TweenService = game:GetService("TweenService")
+	local info = TweenInfo.new(
+		Time, 
+		Enum.EasingStyle.Quart, 
+		Enum.EasingDirection.Out, 
+		0, 
+		false,
+		0
+	)
+	local propertyTable = {
+		[Prop] = New,
+	}
+
+	TweenService:Create(Obj, info, propertyTable):Play()
 end
 
 function API:Notif(Text,Dur)
@@ -384,6 +453,10 @@ function API:ChangeTeam(TeamPath,NoForce,Pos)
 	end
 end
 
+function API:Refresh(NoForce,Position)
+	API:ChangeTeam(plr.Team,NoForce,Position)
+end
+
 function API:KillPlayer(Target,Failed,DoChange)
 	local Bullets = API:CreateBulletTable(20,(Target.Character:FindFirstChild("Head") or Target.Character:FindFirstChildOfClass("Part")))
 	if not Target or not Target.Character or not Target.Character:FindFirstChildOfClass("Humanoid") or Target.Character:FindFirstChildOfClass("Humanoid").Health <1 then
@@ -563,3 +636,177 @@ function API:lag()
 		end)()
 	end
 end
+
+function API:LoopKillAll()
+    
+end
+
+
+function API:Toggle(name, value)
+    local data = API.Toggleables[name]
+    if data then
+        API.Toggleables[name] = not API.Toggleables[name]
+    else
+        API.Toggleables[name] = false
+    end
+end
+
+local ChangeState = function(Type,StateType)
+	local Value = nil
+	if Type and typeof(Type):lower() == "string" and (Type):lower() == "on" then
+		Value = true
+	elseif Type and typeof(Type):lower() == "string" and (Type):lower() == "off" then
+		Value = false
+	elseif typeof(Type):lower() == "boolean" then
+		Value = Type
+	else
+		Value = not States[StateType]
+	end
+	States[StateType] = Value
+	API:Notif(StateType.." has been changed to "..tostring(Value))
+	return Value
+end
+
+plr.CharacterAdded:Connect(function(NewCharacter)
+	if Unloaded then
+		return
+	end
+	task.spawn(function()
+		if States.AutoItems then
+			wait(.5)
+			API:AllGuns()
+		end
+	end)
+	repeat API:swait() until NewCharacter
+	NewCharacter:WaitForChild("HumanoidRootPart")
+	NewCharacter:WaitForChild("Head")
+	NewCharacter:WaitForChild("Humanoid").BreakJointsOnDeath = not States.AutoRespawn
+	NewCharacter:WaitForChild("Humanoid").Died:Connect(function()
+		if not Unloaded and States.AutoRespawn == true then
+			API:Refresh()
+			task.spawn(function()
+				if States.AutoItems then
+					wait(.5)
+					API:AllGuns()
+				end
+			end)
+		end
+	end)
+	if Temp.ArrestOldP and States.AntiArrest then
+		coroutine.wrap(function()
+			API:MoveTo(Temp.ArrestOldP)
+			Temp.ArrestOldP = nil
+		end)()
+	end
+	task.spawn(function()
+		if States.AntiArrest then
+			plr.Character:FindFirstChild("Head").ChildAdded:Connect(function(a)
+				if not Unloaded then
+					if a and a:IsA("BillboardGui") and States.AntiArrest then
+						API:Refresh()
+						coroutine.wrap(function()
+							wait(1)
+							Temp.ArrestOldP = API:GetPosition()
+						end)()
+					end
+				end
+			end)
+		end
+	end)
+end)
+
+coroutine.wrap(function()
+	while wait() do --// fast loop
+		if Unloaded then
+			return
+		end
+		for i,v in pairs(Temp.Viruses) do
+			for _,a in pairs(game:GetService("Players"):GetPlayers()) do
+				if a and a ~= v and a ~= Player then
+					if a and a.Character and a.Character:FindFirstChild("HumanoidRootPart") and(a.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).magnitude <4.5 and a.Character.Humanoid.Health >0 and not table.find(API.Whitelisted,a) then
+						if not cdv then
+							cdv = true
+							API:KillPlayer(a)
+							wait(.7)
+							cdv = false
+						end
+					end
+				end
+			end
+		end
+		game:GetService('StarterGui'):SetCoreGuiEnabled('Backpack', true)
+		pcall(function()
+			if States.AntiArrest == true and Unloaded == false then
+				for i,v in pairs(game.Players:GetPlayers()) do
+					if v ~= Player then
+						if (v.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).magnitude <30 and v.Character.Humanoid.Health >0 and not table.find(API.Whitelisted,v) then
+							if v.Character:FindFirstChildOfClass("Tool") and v.Character:FindFirstChild("Handcuffs") and not v.Character:FindFirstChild("Handcuffs"):FindFirstChild("ISWHITELISTED") then
+								local args = {
+									[1] = v
+								}
+								for i =1,3 do
+									task.spawn(function()
+										game:GetService("ReplicatedStorage").meleeEvent:FireServer(unpack(args))
+									end)
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+		pcall(function()
+			if States.AntiTouch == true and Unloaded == false then
+				for i,v in pairs(game.Players:GetPlayers()) do
+					if v ~= Player then
+						if (v.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).magnitude <2.3 and v.Character.Humanoid.Health >0 and not table.find(API.Whitelisted,v) then
+							local args = {
+								[1] = v
+							}
+							for i =1,8 do
+								task.spawn(function()
+									game:GetService("ReplicatedStorage").meleeEvent:FireServer(unpack(args))
+								end)
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		pcall(function()
+			if States.ArrestAura == true and Unloaded == false then
+				for i,v in pairs(game.Players:GetPlayers()) do
+					if v ~= Player and v.Team ~= game.Teams.Guards then
+						if (v.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).magnitude <30 and v.Character.Humanoid.Health >0 and not table.find(API.Whitelisted,v) then
+							local args = {
+								[1] = v.Character:FindFirstChild("Head") or v.Character:FindFirstChildOfClass("Part")
+							}
+							if v.Team == game.Teams.Criminals or (v.Team == game.Teams.Inmates and API:BadArea(v)) then
+								workspace.Remote.arrest:InvokeServer(unpack(args))
+							end
+						end
+					end
+				end
+			end
+		end)
+		pcall(function()
+			if States.killaura == true and Unloaded == false then
+				for i,v in pairs(game.Players:GetPlayers()) do
+					if v ~= Player and not table.find(API.Whitelisted,v) then
+						if (v.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).magnitude <30 and v.Character.Humanoid.Health >0 and not table.find(API.Whitelisted,v) then
+							local args = {
+								[1] = v
+							}
+							for i =1,3 do
+								task.spawn(function()
+									game:GetService("ReplicatedStorage").meleeEvent:FireServer(unpack(args))
+								end)
+							end
+						end
+					end
+				end
+			end
+		end)
+	end
+end)()
