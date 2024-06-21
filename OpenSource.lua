@@ -36,7 +36,7 @@ end
 local CurrentVersion = "0.0.6"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
-if not CurrentVersion == Old_Version then
+if CurrentVersion ~= Old_Version then
     print("API is outdated! Please get latest version.")
 end
 
