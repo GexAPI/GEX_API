@@ -25,7 +25,11 @@
 	API:Refresh() 					(refresh yourself)
 	API:lag() 					(LAGS SERVER)
 	API:Keycard()					(Gives keycard)
-	
+	(NEW FEATURES)
+	API:Knife()					(Gives knife)
+	API:Hammer()					(Gives hammer)
+	API:Serverhop()					(Changes your server)
+
 	experimental:
 
 	API:MakeAllCrim() 				(manually teleports every prisoner to crim base)
@@ -180,6 +184,10 @@ function Clipboard(value)
 	else
 
 	end
+end
+
+function API:Chat(text)
+    game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, "ALL")
 end
 
 function API:GetCameraPosition(Player)
@@ -589,6 +597,9 @@ function API:KillPlayer(Target,Failed,DoChange)
 end
 
 function API:CrashServer()
+
+    API:Chat("Crashing the server. (Brought to you by AntiExploit Hub)")
+
     local Gun = "Remington 870"
 
     local Player = game.Players.LocalPlayer.Name
@@ -755,7 +766,43 @@ function API:Keycard()
             return true
         end
         if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
-            API:Notif("Guards team is full!")
+            repeat 
+                API:KillAll(game.Teams.Guards)
+            until 
+                game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card")
+
+            if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+                local counter1 = 0
+                if Player.Team ~= OldT then
+                    API:ChangeTeam(OldT)
+                    repeat 
+                    task.wait()
+                    counter1 += 1 
+                    until Player.Team == OldT or counter1 >= 30
+                end
+                if counter1 >= 30 then
+                    Temp.IsGettingKeycard = false
+                    API:MoveTo(Oldc)
+                    API:Notif("Failed to get keycard.", 3)
+                    return true
+                end
+                wait()
+                local counter = 0
+                repeat wait(0.5)
+                    local a =pcall(function()
+                        local Key = workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP
+                        game.Workspace.Remote["ItemHandler"]:InvokeServer(Key)
+                        API:MoveTo(CFrame.new(workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP.Position+Vector3.new(0,3,0)))
+                        counter += 1
+                    end)
+                until plr.Backpack:FindFirstChild("Key card") or counter >= 100
+    
+            else
+                Temp.IsGettingKeycard = false
+                API:MoveTo(Oldc)
+                API:Notif("Failed to get keycard.", 3)
+                return true
+            end
             Temp.IsGettingKeycard = false
             API:MoveTo(Oldc)
             return true
@@ -822,6 +869,12 @@ function API:Keycard()
 end
 
 function API:CrashUser(Target)
+    if not API:CheckForPlayer(Target) then
+        API:Notif("Player not found.",3)
+        return
+    end
+    API:Chat("Server will crash unless "..Target.Name.." leaves the server. (Brought to you by AntiExploit Hub)")
+
 	local Bullets = API:CreateBulletTable(40, (Target.Character:FindFirstChild("Head") or Target.Character:FindFirstChildOfClass("Part")))
 	
 	if API:GuardsFull() then
@@ -849,9 +902,47 @@ function API:CrashUser(Target)
 		task.wait(0.1)
 	
 		if not API:CheckForPlayer(Target) then
+            API:Notif("Target has left the server. Initiating server restoration.")
+            API:Chat("Player crashed/left.")
 		    return
 		end
 	end
+end
+
+function API:Knife()
+    workspace.Remote.ItemHandler:InvokeServer({Position=game:GetService("Players").LocalPlayer.Character.Head.Position,Parent=workspace.Prison_ITEMS.single["Crude Knife"]})
+end
+
+function API:Hammer()
+    workspace.Remote.ItemHandler:InvokeServer({Position=game:GetService("Players").LocalPlayer.Character.Head.Position,Parent=workspace.Prison_ITEMS.single["Hammer"]})
+end
+
+function API:Serverhop()
+	local Ids = {}
+	for _, v in ipairs(game:GetService("HttpService"):JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")).data) do
+		if typeof(v) == "table" and v['maxPlayers'] > v['playing'] and v['id'] ~= game['JobId'] then
+			table.insert(Ids,v.id)
+		end
+	end
+	return game:GetService("TeleportService"):TeleportToPlaceInstance(game['PlaceId'], Ids[math.random(1, #Ids)])
+end
+
+function API:InfAmmo()
+    if plr.Character:FindFirstChildOfClass("Tool") then
+        local Tool = plr.Character:FindFirstChildOfClass("Tool")
+        if not Tool:FindFirstChild("GunStates") then
+            return API:Notif("Needs to be a gun!")
+        end
+        local cc = require(Tool.GunStates)
+        cc["MaxAmmo"] = math.huge
+        cc["StoredAmmo"] = math.huge
+        cc["AmmoPerClip"] = math.huge
+        cc["CurrentAmmo"] = math.huge
+        table.insert(Reload_Guns, Tool)
+        Player.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
+    else
+        API:Notif("You need to hold the tool you want to mod!",false)
+    end
 end
 
 local ChangeState = function(Type,StateType)
@@ -876,10 +967,16 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 	end
 	task.spawn(function()
 		if States.AutoItems then
+            local OldCFrame = plr.Character:WaitForChild("HumanoidRootPart").CFrame
             wait(.5)
-            API:Keycard()
+            if Player.Backpack:FindFirstChild("Key card") then
+                
+            else
+                API:Keycard()
+            end
 			wait(3)
 			API:AllGuns()
+            API:MoveTo(OldCFrame)
 		end
 	end)
 	repeat API:swait() until NewCharacter
@@ -892,10 +989,17 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 			task.spawn(function()
 				if States.AutoItems then
                     wait(.5)
-                    API:Keycard()
+                    local OldCFrame2 = plr.Character:WaitForChild("HumanoidRootPart").CFrame
+                    if plr.Backpack:FindFirstChild("Key card") then
+                        --nothing
+                    else
+                        API:Keycard()
+                    end
 					wait(3)
 
 					API:AllGuns()
+
+                    API:MoveTo(OldCFrame2)
 				end
 			end)
 		end
@@ -904,9 +1008,12 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 		coroutine.wrap(function()
 			API:MoveTo(Temp.ArrestOldP)
 			Temp.ArrestOldP = nil
+
+            local oldCframe = plr.Character:WaitForChild("HumanoidRootPart").CFrame
             API:Keycard()
-            wait(3)
+            wait(2)
             API:AllGuns()
+            API:MoveTo(oldCframe)
 		end)()
 	end
 	task.spawn(function()
@@ -1022,4 +1129,3 @@ coroutine.wrap(function()
 	end
 end)()
 
--- Command goes here
