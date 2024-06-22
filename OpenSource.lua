@@ -31,7 +31,6 @@
 	API:MakeAllCrim() 				(manually teleports every prisoner to crim base)
 	API:CrashUser(playerinstance) 			(HIGH FAIL RATE, if it fails it shuts down the server, use at own risk.)
 
-
 	(EXPERIMENTAL) Toggleables
 
 	To use toggleables, AKA Antiarrest, autotools, ect, you need to call the function:
@@ -751,22 +750,40 @@ function API:Keycard()
         local OldT = Player.Team
         if plr.Character:FindFirstChild("Key card") or plr.Backpack:FindFirstChild("Key card") then
             API:Notif("You already have a keycard!",false)
+            Temp.IsGettingKeycard = false
             return true
         end
         if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
             API:Notif("Guards team is full!")
+            Temp.IsGettingKeycard = false
             return true
         end
         API:ChangeTeam(game.Teams.Guards)
+        local counter2 = 0
         repeat wait(.5)
             Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(15)
             wait()
             API:Refresh()
-        until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card")
+            counter2 += 1
+        until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") or counter2 >= 100
+        if not until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+            Temp.IsGettingKeycard = false
+            API:Notif("Failed to get keycard.", 3)
+            return true
+        end
         if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+            local counter1 = 0
             if Player.Team ~= OldT then
                 API:ChangeTeam(OldT)
-                repeat task.wait() until Player.Team == OldT
+                repeat 
+                task.wait()
+                counter1 += 1 
+                until Player.Team == OldT or counter1 >= 30
+            end
+            if counter1 >= 30 then
+                Temp.IsGettingKeycard = false
+                API:Notif("Failed to get keycard.", 3)
+                return true
             end
             wait()
             local counter = 0
@@ -783,9 +800,11 @@ function API:Keycard()
         API:MoveTo(Oldc)
 
         if plr.Backpack:FindFirstChild("Key card") then
+            Temp.IsGettingKeycard = false
             return true
         else
             API:Notif("Failed to get keycard.",3)
+            Temp.IsGettingKeycard = false
             return true
         end
     else
