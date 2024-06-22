@@ -118,7 +118,7 @@ function API:Notif(Text,Dur)
 	return
 end
 
-local CurrentVersion = "0.0.8"
+local CurrentVersion = "0.0.9"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if CurrentVersion ~= Old_Version then
