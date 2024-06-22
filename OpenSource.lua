@@ -833,10 +833,10 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 	end
 	task.spawn(function()
 		if States.AutoItems then
-			wait(.5)
-			API:AllGuns()
             wait(.5)
             API:Keycard()
+			wait(2)
+			API:AllGuns()
 		end
 	end)
 	repeat API:swait() until NewCharacter
@@ -848,10 +848,10 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 			API:Refresh()
 			task.spawn(function()
 				if States.AutoItems then
-					wait(.5)
-					API:AllGuns()
                     wait(.5)
                     API:Keycard()
+					wait(3)
+					API:AllGuns()
 				end
 			end)
 		end
@@ -860,9 +860,9 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 		coroutine.wrap(function()
 			API:MoveTo(Temp.ArrestOldP)
 			Temp.ArrestOldP = nil
-            API:AllGuns()
-            wait(0.5)
             API:Keycard()
+            wait(3)
+            API:AllGuns()
 		end)()
 	end
 	task.spawn(function()
