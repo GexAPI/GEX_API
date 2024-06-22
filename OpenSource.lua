@@ -757,6 +757,7 @@ function API:Keycard()
         if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
             API:Notif("Guards team is full!")
             Temp.IsGettingKeycard = false
+            API:MoveTo(Oldc)
             return true
         end
         API:ChangeTeam(game.Teams.Guards)
@@ -770,6 +771,7 @@ function API:Keycard()
         if not game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
             Temp.IsGettingKeycard = false
             API:Notif("Failed to get keycard.", 3)
+            API:MoveTo(Oldc)
             return true
         end
         if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
@@ -783,6 +785,7 @@ function API:Keycard()
             end
             if counter1 >= 30 then
                 Temp.IsGettingKeycard = false
+                API:MoveTo(Oldc)
                 API:Notif("Failed to get keycard.", 3)
                 return true
             end
@@ -796,7 +799,12 @@ function API:Keycard()
                     counter += 1
                 end)
             until plr.Backpack:FindFirstChild("Key card") or counter >= 100
-            
+
+        else
+            Temp.IsGettingKeycard = false
+            API:MoveTo(Oldc)
+            API:Notif("Failed to get keycard.", 3)
+            return true
         end
         API:MoveTo(Oldc)
 
