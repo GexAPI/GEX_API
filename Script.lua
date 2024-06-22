@@ -1,5 +1,5 @@
 --[[
-	Welcome to GEX API! This is an open source API which has a large variety of features.
+	Welcome to GEX API! This is a closed-source API which has a large variety of features.
 	
 	To use these features, you call one of these with this prefix; API:insertcommand()
 	
