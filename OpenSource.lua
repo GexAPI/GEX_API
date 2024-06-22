@@ -101,8 +101,29 @@ function Clipboard(value)
 	end
 end
 
+function API:GetCameraPosition(Player)
+	return workspace["CurrentCamera"].CFrame
+end
+
+function API:Loop(Times, calling)
+	for i = 1, tonumber(Times) do
+		calling()
+	end
+end
+
 function API:GetHumanoid()
 	return plr.Character:FindFirstChildOfClass("Humanoid")
+end
+
+function API:CheckForPlayer(Target)
+    local Players = game.Players:GetPlayers()
+    for i,v in pairs(Players) do
+        if v == Target then
+            return true
+        end
+    end
+
+    return false
 end
 
 function API:Tween(Obj, Prop, New, Time)
@@ -159,6 +180,18 @@ function API:Notif(Text,Dur)
 		Notif:Destroy()
 	end)
 	return
+end
+
+function API:GuardsFull(a)
+	if #game:GetService("Teams").Guards:GetPlayers()==8 then
+		if a then
+			if Player.Team == game.Teams.Guards then
+				return false
+			end
+		end
+		return false
+	end
+	return true
 end
 
 function API:UnSit()
@@ -417,6 +450,41 @@ function API:MakeAllCrim()
     end
 end
 
+function API:WaitForRespawn(Cframe,NoForce)
+	game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+
+	local Cframe = API:ConvertPosition(Cframe)
+	local CameraCframe = API:GetCameraPosition()
+	coroutine.wrap(function()
+		local a
+		a = Player.CharacterAdded:Connect(function(NewCharacter)
+			pcall(function()
+				coroutine.wrap(function()
+					workspace.CurrentCamera:GetPropertyChangedSignal("CFrame"):Wait()
+					API:Loop(5, function()
+						workspace["CurrentCamera"].CFrame = CameraCframe
+					end)
+				end)()
+				NewCharacter:WaitForChild("HumanoidRootPart")
+				API:MoveTo(Cframe)
+				if NoForce then
+					task.spawn(function()
+						NewCharacter:WaitForChild("ForceField"):Destroy()
+					end)
+				end
+			end)
+			a:Disconnect()
+			Cframe = nil
+		end)
+		task.spawn(function()
+			wait(2)
+			if a then
+				a:Disconnect()
+			end
+		end)
+	end)()
+end
+
 function API:ChangeTeam(TeamPath,NoForce,Pos)
 	pcall(function()
 		repeat task.wait() until game:GetService("Players").LocalPlayer.Character
@@ -651,6 +719,39 @@ function API:Toggle(name, value)
     end
 end
 
+function API:CrashUser(Target)
+	local Bullets = API:CreateBulletTable(40, (Target.Character:FindFirstChild("Head") or Target.Character:FindFirstChildOfClass("Part")))
+	
+	if API:GuardsFull() then
+		API:GetGun("M9")
+	else
+		API:ChangeTeam(game.Teams.Guards)
+	end
+	
+	repeat
+		task.wait()
+		API:GetGun("M9")
+		if not API:CheckForPlayer(Target) then
+			return
+		end
+	until 
+		Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9") or not API:CheckForPlayer(Target)
+	
+	game:GetService("ReplicatedStorage").ReloadEvent:FireServer(Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9"))
+	
+	local Gun = Player.Backpack:FindFirstChild("M9") or Player.Character:FindFirstChild("M9") 
+	
+	while game.Players:FindFirstChild(Target.Name) do
+		game:GetService("ReplicatedStorage").ShootEvent:FireServer(Bullets, Gun)
+		game:GetService("ReplicatedStorage").ReloadEvent:FireServer(Gun)
+		task.wait(0.1)
+	
+		if not API:CheckForPlayer(Target) then
+		    return
+		end
+	end
+end
+
 local ChangeState = function(Type,StateType)
 	local Value = nil
 	if Type and typeof(Type):lower() == "string" and (Type):lower() == "on" then
@@ -810,3 +911,5 @@ coroutine.wrap(function()
 		end)
 	end
 end)()
+
+-- Command goes here
