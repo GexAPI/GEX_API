@@ -31,6 +31,7 @@
 	API:MakeAllCrim() 				(manually teleports every prisoner to crim base)
 	API:CrashUser(playerinstance) 			(HIGH FAIL RATE, if it fails it shuts down the server, use at own risk.)
 
+
 	(EXPERIMENTAL) Toggleables
 
 	To use toggleables, AKA Antiarrest, autotools, ect, you need to call the function:
@@ -766,7 +767,7 @@ function API:Keycard()
             API:Refresh()
             counter2 += 1
         until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") or counter2 >= 100
-        if not until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+        if not game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
             Temp.IsGettingKeycard = false
             API:Notif("Failed to get keycard.", 3)
             return true
