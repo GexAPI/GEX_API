@@ -1,26 +1,33 @@
 --[[
-Welcome to GEX API! This is an open source API which has a large variety of features.
-
-To use these features, you paste in the loadstring, and call one of these with this prefix; API:insertcommand()
-
-Current list of features:
-
-API:GetGun(GunName)
-API:AllGuns()
-API:Speed(speed)
-API:JumpPower(power)
-API:Gravity(gravity)
-API:Time()
-API:SaveGame()
-API:Bypasser()
-API:Teleport(PlrName)
-API:bring(playerInstance,Cframe)
-API:MakeAllCrim()
-API:ChangeTeam(Team)
-API:KillPlayer(Target)
-API:KillAll() [buggy]
-API:MoveTo(cframe)
-API:CrashServer()
+	Welcome to GEX API! This is an open source API which has a large variety of features.
+	
+	To use these features, you call one of these with this prefix; API:insertcommand()
+	
+	for instance, API:Speed(50)
+	
+	Current list of features:
+	
+	API:GetGun(GunName) 				(gives you a certain gun)
+	API:AllGuns() 					(gives you every gun)
+	API:Speed(speed) 				(changes your speed)
+	API:JumpPower(power) 				(changes your jump power)
+	API:Gravity(gravity) 				(changes your gravity)
+	API:Time() 					(gets the current time)
+	API:SaveGame() 					(downloads game if compatible)
+	API:Bypasser() 					(executes bypasser script)
+	API:Teleport(PlrName) 				(teleport to a player)
+	API:bring(playerInstance,Cframe) 		(bring a player to either you, or a certain cframe position)
+	API:ChangeTeam(Team) 				(change to a certain team)
+	API:KillPlayer(Target) 				(high success rate)
+	API:KillAll() [buggy] 				(kills every player besides criminals)
+	API:MoveTo(cframe) 				(teleport somewhere)
+	API:CrashServer() 				(weak server crash)
+	API:Refresh() 					(refresh yourself)
+	API:lag() 					(LAGS SERVER)
+	
+	experimental:
+	API:MakeAllCrim() 				(manually teleports every prisoner to crim base)
+	API:CrashUser(playerinstance) 			(HIGH FAIL RATE, if it fails it shuts down the server, use at own risk.)
 ]]
 
 local API = {}
@@ -601,7 +608,7 @@ function API:CrashServer()
     end
 end
 
-function API:killall(TeamToKill)
+function API:KillAll(TeamToKill)
 	if not TeamToKill then
 		local LastTeam = Player.Team
 		local BulletTable = {}
