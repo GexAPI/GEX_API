@@ -170,6 +170,7 @@ Temp.Admins = {}
 Temp.LoopmKilling = {}
 Temp.Viruses = {}
 Temp.SavedAdmins = {}
+Temp.IsGettingKeycard = false
 Running = false
 
 function Clipboard(value)
@@ -744,38 +745,52 @@ function API:Toggle(name, value)
 end
 
 function API:Keycard()
-    local Oldc = API:GetPosition()
-    local OldT = Player.Team
-    if plr.Character:FindFirstChild("Key card") or plr.Backpack:FindFirstChild("Key card") then
-        API:Notif("You already have a keycard!",false)
-        return true
-    end
-    if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
-        API:Notif("Guards team is full!")
-        return true
-    end
-    API:ChangeTeam(game.Teams.Guards)
-    repeat wait(.5)
-        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(15)
-        wait()
-        API:Refresh()
-    until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card")
-    if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
-        if Player.Team ~= OldT then
-            API:ChangeTeam(OldT)
-            repeat task.wait() until Player.Team == OldT
+    if Temp.IsGettingKeycard == false then
+        Temp.IsGettingKeycard = true
+        local Oldc = API:GetPosition()
+        local OldT = Player.Team
+        if plr.Character:FindFirstChild("Key card") or plr.Backpack:FindFirstChild("Key card") then
+            API:Notif("You already have a keycard!",false)
+            return true
         end
-        wait()
-        repeat wait()
-            local a =pcall(function()
-                local Key = workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP
-                game.Workspace.Remote["ItemHandler"]:InvokeServer(Key)
-                API:MoveTo(CFrame.new(workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP.Position+Vector3.new(0,3,0)))
-            end)
-        until plr.Backpack:FindFirstChild("Key card")
+        if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
+            API:Notif("Guards team is full!")
+            return true
+        end
+        API:ChangeTeam(game.Teams.Guards)
+        repeat wait(.5)
+            Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(15)
+            wait()
+            API:Refresh()
+        until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card")
+        if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+            if Player.Team ~= OldT then
+                API:ChangeTeam(OldT)
+                repeat task.wait() until Player.Team == OldT
+            end
+            wait()
+            local counter = 0
+            repeat wait(0.5)
+                local a =pcall(function()
+                    local Key = workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP
+                    game.Workspace.Remote["ItemHandler"]:InvokeServer(Key)
+                    API:MoveTo(CFrame.new(workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP.Position+Vector3.new(0,3,0)))
+                    counter += 1
+                end)
+            until plr.Backpack:FindFirstChild("Key card") or counter >= 100
+            
+        end
+        API:MoveTo(Oldc)
+
+        if plr.Backpack:FindFirstChild("Key card") then
+            return true
+        else
+            API:Notif("Failed to get keycard.",3)
+            return true
+        end
+    else
+        API:Notif("You are already getting keycard!",3)
     end
-    API:MoveTo(Oldc)
-    return true
 end
 
 function API:CrashUser(Target)
@@ -835,7 +850,7 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 		if States.AutoItems then
             wait(.5)
             API:Keycard()
-			wait(2)
+			wait(3)
 			API:AllGuns()
 		end
 	end)
@@ -851,6 +866,7 @@ plr.CharacterAdded:Connect(function(NewCharacter)
                     wait(.5)
                     API:Keycard()
 					wait(3)
+
 					API:AllGuns()
 				end
 			end)
