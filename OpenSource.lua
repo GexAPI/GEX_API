@@ -29,6 +29,7 @@
 	API:Knife()					(Gives knife)
 	API:Hammer()					(Gives hammer)
 	API:Serverhop()					(Changes your server)
+	API:Tase(Target) [ TEAM, ALL, PLAYERNAME ] 	(Tases the target, note to use NAME and not INSTANCE)
 
 	experimental:
 
@@ -184,6 +185,19 @@ function Clipboard(value)
 	else
 
 	end
+end
+
+function API:FindPlayer(String,IgnoreError)
+	String = String:gsub("%s+", "")
+	for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+		if v.Name:lower():match("^" .. String:lower()) or v.DisplayName:lower():match("^" .. String:lower()) then
+			return v
+		end
+	end
+	if not IgnoreError then
+		API:Notif("Player has left or is not in your current game.",false)
+	end
+	return nil
 end
 
 function API:Chat(text)
@@ -942,6 +956,103 @@ function API:InfAmmo()
         Player.Character:FindFirstChildOfClass("Humanoid"):UnequipTools()
     else
         API:Notif("You need to hold the tool you want to mod!",false)
+    end
+end
+
+function API:Tase(target)
+    if target == "all" then
+        local Oldt = Player.Team
+        API:ChangeTeam(game.Teams.Guards)
+        repeat task.wait() until Player.Backpack:FindFirstChild("Taser")
+        wait(.7)
+        local ohTable1 = {}
+        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+            if v and v~= Player and v.Team ~= game.Teams.Guards then
+                table.insert(ohTable1, {
+                    ["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+                    ["Distance"] = -1,
+                    ["Cframe"] = CFrame.new(),
+                    ["Hit"] = v.Character.Head
+                })
+            end
+        end
+        local ohInstance2 = game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Taser") or game:GetService("Players").LocalPlayer.Character:FindFirstChild("Taser")
+        game:GetService("ReplicatedStorage").ShootEvent:FireServer(ohTable1, ohInstance2)
+        task.spawn(function()
+            game:GetService("ReplicatedStorage").ReloadEvent:FireServer(game:GetService("Players").LocalPlayer.Backpack.Taser)
+        end)
+        wait(.7)
+        API:ChangeTeam(Oldt)
+    elseif target == "criminals" then
+        local Oldt = Player.Team
+        API:ChangeTeam(game.Teams.Guards)
+        repeat task.wait() until Player.Backpack:FindFirstChild("Taser")
+        wait(.7)
+        local ohTable1 = {}
+        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+            if v and v~= Player and v.Team ~= game.Teams.Guards and v.Team ==game.Teams.Criminals then
+                table.insert(ohTable1,{
+                    ["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+                    ["Distance"] = -1,
+                    ["Cframe"] = CFrame.new(),
+                    ["Hit"] = v.Character.Head
+                })
+            end
+        end
+        local ohInstance2 = game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Taser") or game:GetService("Players").LocalPlayer.Character:FindFirstChild("Taser")
+        game:GetService("ReplicatedStorage").ShootEvent:FireServer(ohTable1, ohInstance2)
+        task.spawn(function()
+            game:GetService("ReplicatedStorage").ReloadEvent:FireServer(game:GetService("Players").LocalPlayer.Backpack.Taser)
+        end)
+        wait(.7)
+        API:ChangeTeam(Oldt)
+    elseif target == "inmates" then
+        local Oldt = Player.Team
+        API:ChangeTeam(game.Teams.Guards)
+        repeat task.wait() until Player.Backpack:FindFirstChild("Taser")
+        wait()
+        local ohTable1 = {}
+        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
+            if v and v~= Player and v.Team ~= game.Teams.Guards and v.Team ==game.Teams.Inmates then
+                table.insert(ohTable1, {
+                    ["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+                    ["Distance"] = -1,
+                    ["Cframe"] = CFrame.new(),
+                    ["Hit"] = v.Character.Head
+                })
+            end
+        end
+        local ohInstance2 = game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Taser") or game:GetService("Players").LocalPlayer.Character:FindFirstChild("Taser")
+        game:GetService("ReplicatedStorage").ShootEvent:FireServer(ohTable1, ohInstance2)
+        task.spawn(function()
+            game:GetService("ReplicatedStorage").ReloadEvent:FireServer(game:GetService("Players").LocalPlayer.Backpack.Taser)
+        end)
+        wait(.7)
+        API:ChangeTeam(Oldt)
+    else
+        local Target = API:FindPlayer(target)
+        if Target then
+            local Oldt = Player.Team
+            API:ChangeTeam(game.Teams.Guards)
+            repeat task.wait() until Player.Backpack:FindFirstChild("Taser")
+            wait(.7)
+            local ohTable1 = {
+                [1] = {
+                    ["RayObject"] = Ray.new(Vector3.new(), Vector3.new()),
+                    ["Distance"] = 0,
+                    ["Cframe"] = CFrame.new(),
+                    ["Hit"] = Target.Character.Head
+                }
+            }
+            local ohInstance2 = game:GetService("Players").LocalPlayer.Backpack.Taser
+
+            game:GetService("ReplicatedStorage").ShootEvent:FireServer(ohTable1, ohInstance2)
+            task.spawn(function()
+                game:GetService("ReplicatedStorage").ReloadEvent:FireServer(game:GetService("Players").LocalPlayer.Backpack.Taser)
+            end)
+            wait(.1)
+            API:ChangeTeam(Oldt)
+        end
     end
 end
 
