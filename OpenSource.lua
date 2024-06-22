@@ -24,10 +24,27 @@
 	API:CrashServer() 				(weak server crash)
 	API:Refresh() 					(refresh yourself)
 	API:lag() 					(LAGS SERVER)
+	API:Keycard()					(Gives keycard)
 	
 	experimental:
+
 	API:MakeAllCrim() 				(manually teleports every prisoner to crim base)
 	API:CrashUser(playerinstance) 			(HIGH FAIL RATE, if it fails it shuts down the server, use at own risk.)
+
+
+	(EXPERIMENTAL) Toggleables
+
+	To use toggleables, AKA Antiarrest, autotools, ect, you need to call the function:
+
+	ChangeState()
+
+	There are parameters, for instance, if it is a boolean, you can put either nil or "boolean" to change the state.
+
+	Current features:
+
+	ChangeState(nil,"AntiArrest")			(TURNS ON/OFF ANTIARREST)
+	ChangeState(nil,"AutoItems")			(TURNS ON/OFF AUTOITEMS)
+	ChangeState(nil,"killaura")			(TURNS ON/OFF KILLAURA)
 ]]
 
 local API = {}
@@ -96,7 +113,7 @@ function API:Notif(Text,Dur)
 	return
 end
 
-local CurrentVersion = "0.0.7"
+local CurrentVersion = "0.0.8"
 local Old_Version = game:GetService("HttpService"):JSONDecode((game:HttpGet("https://raw.githubusercontent.com/TheXbots/GEX_API/main/Version.lua"))).Version
 
 if CurrentVersion ~= Old_Version then
@@ -121,7 +138,7 @@ States.loopkillguards = false
 States.Antishield = false
 States.DoorsDestroy = false
 States.antipunch = false
-States.AutoRespawn = false
+States.AutoRespawn = true
 States.AutoItems = false
 States.ClickKill = false
 States.ClickArrest = false
@@ -726,6 +743,41 @@ function API:Toggle(name, value)
     end
 end
 
+function API:Keycard()
+    local Oldc = API:GetPosition()
+    local OldT = Player.Team
+    if plr.Character:FindFirstChild("Key card") or plr.Backpack:FindFirstChild("Key card") then
+        API:Notif("You already have a keycard!",false)
+        return true
+    end
+    if #game.Teams.Guards:GetPlayers() == 8 and plr.Team ~= game.Teams.Guards then
+        API:Notif("Guards team is full!")
+        return true
+    end
+    API:ChangeTeam(game.Teams.Guards)
+    repeat wait(.5)
+        Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(15)
+        wait()
+        API:Refresh()
+    until game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card")
+    if game:GetService("Workspace")["Prison_ITEMS"].single:FindFirstChild("Key card") then
+        if Player.Team ~= OldT then
+            API:ChangeTeam(OldT)
+            repeat task.wait() until Player.Team == OldT
+        end
+        wait()
+        repeat wait()
+            local a =pcall(function()
+                local Key = workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP
+                game.Workspace.Remote["ItemHandler"]:InvokeServer(Key)
+                API:MoveTo(CFrame.new(workspace.Prison_ITEMS.single["Key card"].ITEMPICKUP.Position+Vector3.new(0,3,0)))
+            end)
+        until plr.Backpack:FindFirstChild("Key card")
+    end
+    API:MoveTo(Oldc)
+    return true
+end
+
 function API:CrashUser(Target)
 	local Bullets = API:CreateBulletTable(40, (Target.Character:FindFirstChild("Head") or Target.Character:FindFirstChildOfClass("Part")))
 	
@@ -783,6 +835,8 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 		if States.AutoItems then
 			wait(.5)
 			API:AllGuns()
+            wait(.5)
+            API:Keycard()
 		end
 	end)
 	repeat API:swait() until NewCharacter
@@ -796,6 +850,8 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 				if States.AutoItems then
 					wait(.5)
 					API:AllGuns()
+                    wait(.5)
+                    API:Keycard()
 				end
 			end)
 		end
@@ -804,6 +860,9 @@ plr.CharacterAdded:Connect(function(NewCharacter)
 		coroutine.wrap(function()
 			API:MoveTo(Temp.ArrestOldP)
 			Temp.ArrestOldP = nil
+            API:AllGuns()
+            wait(0.5)
+            API:Keycard()
 		end)()
 	end
 	task.spawn(function()
