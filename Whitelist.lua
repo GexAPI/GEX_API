@@ -5,5 +5,5 @@
   "DrDoomEX" : true,
   "TheGoIdenOne1" : true,
   "TheNathanIsTheBad" : true,
-  "MasonIsH0M0", true
+  "MasonIsH0M0" : true
 }
