@@ -1,3 +1,13 @@
+local object = setmetatable({}, { __index = newcclosure(function() return false end), __metatable = "Locked!" })
+local ref = hookmetamethod(object, "__index", function() return true end)
+
+local isMetaMethod = false
+
+local function = test()
+    
+end
+assert(object.test == true, "Failed to hook a metamethod and change the return value")
+
 local originalNameCall
 
 originalNameCall = hookmetamethod(game, "__namecall", function(self,...)
