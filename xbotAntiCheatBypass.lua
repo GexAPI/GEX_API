@@ -13,7 +13,7 @@ originalNameCall = hookmetamethod(game, "__namecall", function(self,...)
         --intercept the call and give our own 
         local args = {...} -- temporary, but now we've successfully hooked
         if type(args[31]) == "boolean" then
-            args[31] = false
+            args[31] = false -- major security flaw as such that the noclip, sitting, and flying are all flagged as false until true, so if it's a boolean setting it to false is viable.
         end
         local result = originalNameCall(self, unpack(args))
     else
